@@ -14,11 +14,12 @@ type Config struct {
 
 var config Config
 
-func Configure() Config {
+func Configure() *Config {
+
 	config.LoginPage = "./templates/login.html"
 	config.SessionTimeout = 120
 	config.LoginPath = "/login"
-	return config
+	return &config
 }
 
 func (config *Config) SetLoginPage(loginPage string) *Config {
@@ -38,8 +39,8 @@ func (config *Config) SetLoginPath(loginPath string) *Config {
 
 func (config *Config) AuthenticateBySqlQuery(db *sql.DB, query string) *Config {
 
-	query = strings.Replace(query, "::username", "$1", 1)
-	query = strings.Replace(query, "::password", "$2", 1)
+	query = strings.Replace(query, "::username", "?", 1)
+	query = strings.Replace(query, "::password", "?", 1)
 	config.SqlDataBaseModel = SqlDataBase{db, query}
 	return config
 }

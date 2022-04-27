@@ -8,11 +8,6 @@ import (
 	"github.com/gorilla/securecookie"
 )
 
-// cookie handling
-var Logintemplates = template.Must(template.ParseFiles(
-	config.LoginPage,
-))
-
 var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
 	securecookie.GenerateRandomKey(32))
@@ -55,13 +50,19 @@ func clearSession(response http.ResponseWriter) {
 func doLogin(response http.ResponseWriter, request *http.Request, db DataBaseInterface) {
 	username := request.FormValue("username")
 	password := request.FormValue("password")
-	redirectTarget := config.LoginPath + "?wrong"
+	redirectPath := request.URL.Query().Get("redirect")
+	redirectTarget := config.LoginPath + "?wrong=yes&redirect=" + redirectPath
 	if username != "" && password != "" {
 
 		ok, _ := db.AuthenticateUser(username, password)
 		if ok {
 			setSession(username, response)
-			redirectTarget = "/"
+			if redirectPath != "" {
+				redirectTarget = redirectPath
+			} else {
+				redirectTarget = "/"
+			}
+
 		}
 
 	}
@@ -69,7 +70,10 @@ func doLogin(response http.ResponseWriter, request *http.Request, db DataBaseInt
 }
 
 func loginView(w http.ResponseWriter, r *http.Request) {
-
+	// cookie handling
+	var Logintemplates = template.Must(template.ParseFiles(
+		config.LoginPage,
+	))
 	err := Logintemplates.ExecuteTemplate(w, "login", nil)
 
 	if err != nil {
@@ -98,7 +102,7 @@ func LoginHandler() http.Handler {
 func LogoutHandler() http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 		clearSession(response)
-		http.Redirect(response, request, "/", 302)
+		http.Redirect(response, request, config.LoginPath+"?logout=yes", 302)
 	})
 }
 
@@ -108,7 +112,8 @@ func LoginRequired(next http.Handler) http.Handler {
 		if userName != "" {
 			next.ServeHTTP(w, r)
 		} else {
-			http.Redirect(w, r, config.LoginPath+"?expired", 302)
+
+			http.Redirect(w, r, config.LoginPath+"?redirect="+r.URL.Path, 302)
 		}
 
 	})

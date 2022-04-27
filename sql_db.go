@@ -1,6 +1,9 @@
 package gologin
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+)
 
 type DataBaseInterface interface {
 	AuthenticateUser(username string, password string) (bool, interface{})
@@ -15,6 +18,10 @@ type SqlDataBase struct {
 func (db *SqlDataBase) AuthenticateUser(username string, password string) (bool, interface{}) {
 	var result interface{}
 	err := db.QueryRow(db.AuthenticationSqlQuery, username, password).Scan(&result)
+
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
 
 	return (err == nil), result
 
