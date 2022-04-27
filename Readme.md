@@ -14,6 +14,8 @@ You can easily setup your customized login process with **configure()** function
 
 - **SQL connection and query to authenticate user** : SQL query to retrieve user by given username and password. The query must return only single arbitary column, it must have a where clause with two placeholder ::username and ::password.
 
+- **Wrap desired endpoints to protect** : You should wrap the endpoints you want to protect with ***gologin.LoginRequired*** function in the main function.( see the example)
+
 See the example :
 
 ```Go
