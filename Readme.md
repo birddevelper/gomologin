@@ -55,7 +55,9 @@ func main() {
 		SetSessionTimeout(90).                 // set session expiration time in seconds
 		SetLoginPath("/login").                // set login http path
 		// set database connection and sql query
-		AuthenticateBySqlQuery(db, "select username from users where username = ::username and password = ::password")
+		AuthenticateBySqlQuery(
+            db,
+            "select username from users where username = ::username and password = ::password")
 
 	// instantiate http server
 	mux := http.NewServeMux()
