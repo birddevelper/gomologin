@@ -1,6 +1,6 @@
 # What is Gologin
 
-Gologin is easy to setup Go login manager. It helps you protect your application resources from unattended/unauthenticated access. Currently it works with SQL databases authentication.
+Gologin is easy to setup login manager for Go web applications. It helps you protect your application resources from unattended/unauthenticated access. Currently it works with SQL databases authentication.
 
 ## How to setup
 
