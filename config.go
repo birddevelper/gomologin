@@ -6,11 +6,10 @@ import (
 )
 
 type Config struct {
-	LoginPage         string
-	SessionTimeout    int
-	LoginPath         string
-	SqlDataBase       *sql.DB
-	AuthenticateQuery string
+	LoginPage        string
+	SessionTimeout   int
+	LoginPath        string
+	SqlDataBaseModel SqlDataBase
 }
 
 var config Config
@@ -37,20 +36,16 @@ func (config *Config) SetLoginPath(loginPath string) *Config {
 	return config
 }
 
-func (config *Config) SqlDB(db *sql.DB) *Config {
-	config.SqlDataBase = db
-	return config
-}
+func (config *Config) AuthenticateBySqlQuery(db *sql.DB, query string) *Config {
 
-func (config *Config) SetAuthenticateQuery(query string) *Config {
 	query = strings.Replace(query, "::username", "$1", 1)
 	query = strings.Replace(query, "::password", "$2", 1)
-	config.AuthenticateQuery = query
+	config.SqlDataBaseModel = SqlDataBase{db, query}
 	return config
 }
 
 func (config *Config) GetDBType() string {
-	if config.SqlDataBase != nil {
+	if config.SqlDataBaseModel != (SqlDataBase{}) {
 		return "sql"
 	}
 	return "noDB"

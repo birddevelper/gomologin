@@ -52,18 +52,18 @@ func clearSession(response http.ResponseWriter) {
 	http.SetCookie(response, cookie)
 }
 
-// login handler
-
 func doLogin(response http.ResponseWriter, request *http.Request, db DataBaseInterface) {
-	name := request.FormValue("username")
-	pass := request.FormValue("password")
+	username := request.FormValue("username")
+	password := request.FormValue("password")
 	redirectTarget := config.LoginPath + "?wrong"
-	if name != "" && pass != "" {
+	if username != "" && password != "" {
 
-		if name == "user" && pass == "1234" {
-			setSession(name, response)
+		ok, _ := db.AuthenticateUser(username, password)
+		if ok {
+			setSession(username, response)
 			redirectTarget = "/"
 		}
+
 	}
 	http.Redirect(response, request, redirectTarget, 302)
 }
@@ -87,7 +87,7 @@ func LoginHandler() http.Handler {
 		} else if r.Method == "POST" {
 			var db DataBaseInterface
 			if config.GetDBType() == "sql" {
-				db = SqlDataBase{}
+				db = &config.SqlDataBaseModel
 			}
 			doLogin(w, r, db)
 		}
