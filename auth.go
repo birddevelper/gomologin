@@ -8,13 +8,9 @@ import (
 	"github.com/gorilla/securecookie"
 )
 
-var LoginPage string = "./templates/login.html"
-var SessionExpireTimeout int = 120 // in second
-var LoginPath string = "/login"
-
 // cookie handling
 var Logintemplates = template.Must(template.ParseFiles(
-	LoginPage,
+	config.LoginPage,
 ))
 
 var cookieHandler = securecookie.New(
@@ -40,7 +36,7 @@ func setSession(userName string, response http.ResponseWriter) {
 			Name:   "session",
 			Value:  encoded,
 			Path:   "/",
-			MaxAge: SessionExpireTimeout,
+			MaxAge: config.SessionTimeout,
 		}
 		http.SetCookie(response, cookie)
 	}
@@ -58,10 +54,10 @@ func clearSession(response http.ResponseWriter) {
 
 // login handler
 
-func doLogin(response http.ResponseWriter, request *http.Request) {
+func doLogin(response http.ResponseWriter, request *http.Request, db DataBaseInterface) {
 	name := request.FormValue("username")
 	pass := request.FormValue("password")
-	redirectTarget := LoginPath + "?wrong"
+	redirectTarget := config.LoginPath + "?wrong"
 	if name != "" && pass != "" {
 
 		if name == "user" && pass == "1234" {
@@ -89,7 +85,11 @@ func LoginHandler() http.Handler {
 		if r.Method == "GET" {
 			loginView(w, r)
 		} else if r.Method == "POST" {
-			doLogin(w, r)
+			var db DataBaseInterface
+			if config.GetDBType() == "sql" {
+				db = SqlDataBase{}
+			}
+			doLogin(w, r, db)
 		}
 	})
 }
@@ -108,7 +108,7 @@ func LoginRequired(next http.Handler) http.Handler {
 		if userName != "" {
 			next.ServeHTTP(w, r)
 		} else {
-			http.Redirect(w, r, LoginPath+"?expired", 302)
+			http.Redirect(w, r, config.LoginPath+"?expired", 302)
 		}
 
 	})
