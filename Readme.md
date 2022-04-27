@@ -3,7 +3,7 @@
 <p align="center">
 <img src="https://m-shaeri.ir/blog/wp-content/uploads/2022/04/gologin.png"  height="200" >
 </p>
-Gologin is easy to setup login manager for Go web applications. It helps you protect your application resources from unattended/unauthenticated access. Currently it works with SQL databases authentication.
+**Gologin** is an easy to setup login manager for Go web applications. It helps you protect your application resources from unattended/unauthenticated access. Currently it works with SQL databases authentication.
 
 ## How to setup
 
