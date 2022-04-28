@@ -121,3 +121,20 @@ Html template for login page :
 
 ```
 
+You can also have in-memory session store to save your data in any type during user's session. By default the **username** and **authData** session keys will be set after each login, so you can access them all across your application. Note that **authData** is the  data from the column you specified in authentication SQL query.
+
+```Go
+
+// get the session data
+username, err : = gologin.GetSession("username")
+
+fmt.Printf("Welcome " + username.(string))
+
+```
+
+
+
+## Todo list
+
+- Implement role managemnet and authorization
+- mongoDB support
