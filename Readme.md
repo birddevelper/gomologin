@@ -8,6 +8,15 @@
 
 ## How to setup
 
+Get the package with this command :
+
+```bash
+go get github.com/birddevelper/gologin
+
+```
+
+## How to use
+
 You can easily setup your customized login process with **configure()** function. You should specify following paramters to make the Gologin ready to start:
 
 - **Login page** : path to html template. Default path is ***./template/login.html***, note that the template must be defined as ****"login"**** with ***{{define "login"}}*** at the begining line
