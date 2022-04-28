@@ -1,9 +1,14 @@
 package gologin
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/gorilla/securecookie"
 )
@@ -12,19 +17,30 @@ var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
 	securecookie.GenerateRandomKey(32))
 
-func GetUserName(request *http.Request) (userName string) {
-	if cookie, err := request.Cookie("session"); err == nil {
-		cookieValue := make(map[string]string)
-		if err = cookieHandler.Decode("session", cookie.Value, &cookieValue); err == nil {
-			userName = cookieValue["name"]
-		}
-	}
-	return userName
+// func GetUserName(request *http.Request) (userName string) {
+// 	if cookie, err := request.Cookie("session"); err == nil {
+// 		cookieValue := make(map[string]string)
+// 		if err = cookieHandler.Decode("session", cookie.Value, &cookieValue); err == nil {
+// 			userName = cookieValue["name"]
+// 		}
+// 	}
+// 	return userName
+// }
+
+func generateSessionId(username string) string {
+	now := time.Now()
+	unix := now.Unix()
+	timestamp := strconv.FormatInt(unix, 10)
+	hash := md5.Sum([]byte(username + timestamp))
+	return hex.EncodeToString(hash[:])
 }
 
-func setSession(userName string, response http.ResponseWriter) {
+func setSessionId(id string, response http.ResponseWriter) {
+
+	session_store[id] = make(map[string]interface{})
+
 	value := map[string]string{
-		"name": userName,
+		"id": id,
 	}
 	if encoded, err := cookieHandler.Encode("session", value); err == nil {
 		cookie := &http.Cookie{
@@ -37,13 +53,63 @@ func setSession(userName string, response http.ResponseWriter) {
 	}
 }
 
-func clearSession(response http.ResponseWriter) {
+func GetSessionId(request *http.Request) (id string) {
+	if cookie, err := request.Cookie("session"); err == nil {
+		cookieValue := make(map[string]string)
+		if err = cookieHandler.Decode("session", cookie.Value, &cookieValue); err == nil {
+			id = cookieValue["id"]
+		}
+	}
+	return id
+}
+
+func SetSession(key string, value interface{}, request *http.Request) {
+	sessionId := GetSessionId(request)
+	session_store[sessionId][key] = value
+
+	log.Printf("Set :" + sessionId)
+}
+
+func setSessionBySessionId(sessionId string, key string, value interface{}, request *http.Request) {
+	session_store[sessionId][key] = value
+}
+
+func GetSession(key string, request *http.Request) (interface{}, bool) {
+	sessionId := GetSessionId(request)
+	value, ok := session_store[sessionId][key]
+	if ok {
+		return value, true
+	}
+
+	return nil, false
+}
+
+func RemoveSession(key string, request *http.Request) bool {
+
+	sessionId := GetSessionId(request)
+
+	if _, ok := session_store[sessionId][key]; ok {
+		delete(session_store[sessionId], key)
+		return true
+	}
+
+	return false
+}
+
+func clearSession(response http.ResponseWriter, request *http.Request) {
+
+	sessionId := GetSessionId(request)
 	cookie := &http.Cookie{
 		Name:   "session",
 		Value:  "",
 		Path:   "/",
 		MaxAge: -1,
 	}
+
+	if _, ok := session_store[sessionId]; ok {
+		delete(session_store, sessionId)
+	}
+
 	http.SetCookie(response, cookie)
 }
 
@@ -54,9 +120,14 @@ func doLogin(response http.ResponseWriter, request *http.Request, db DataBaseInt
 	redirectTarget := config.LoginPath + "?wrong=yes&redirect=" + redirectPath
 	if username != "" && password != "" {
 
-		ok, _ := db.AuthenticateUser(username, password)
+		ok, data := db.AuthenticateUser(username, password)
 		if ok {
-			setSession(username, response)
+			fmt.Printf("Underlying Value: %v\n", data)
+
+			sessionId := generateSessionId(username)
+			setSessionId(sessionId, response)
+			setSessionBySessionId(sessionId, "authData", data, request)
+			setSessionBySessionId(sessionId, "username", username, request)
 			if redirectPath != "" {
 				redirectTarget = redirectPath
 			} else {
@@ -69,31 +140,31 @@ func doLogin(response http.ResponseWriter, request *http.Request, db DataBaseInt
 	http.Redirect(response, request, redirectTarget, 302)
 }
 
-func loginView(w http.ResponseWriter, r *http.Request) {
+func loginView(response http.ResponseWriter, request *http.Request) {
 	// cookie handling
 	var Logintemplates = template.Must(template.ParseFiles(
 		config.LoginPage,
 	))
-	err := Logintemplates.ExecuteTemplate(w, "login", nil)
+	err := Logintemplates.ExecuteTemplate(response, "login", nil)
 
 	if err != nil {
-		http.Error(w, fmt.Sprintf("login: couldn't parse template: %v", err), http.StatusInternalServerError)
+		http.Error(response, fmt.Sprintf("login: couldn't parse template: %v", err), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	response.WriteHeader(http.StatusOK)
 }
 
 func LoginHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 
-		if r.Method == "GET" {
-			loginView(w, r)
-		} else if r.Method == "POST" {
+		if request.Method == "GET" {
+			loginView(response, request)
+		} else if request.Method == "POST" {
 			var db DataBaseInterface
 			if config.GetDBType() == "sql" {
 				db = &config.SqlDataBaseModel
 			}
-			doLogin(w, r, db)
+			doLogin(response, request, db)
 		}
 	})
 }
@@ -101,19 +172,19 @@ func LoginHandler() http.Handler {
 // logout handler
 func LogoutHandler() http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-		clearSession(response)
+		clearSession(response, request)
 		http.Redirect(response, request, config.LoginPath+"?logout=yes", 302)
 	})
 }
 
 func LoginRequired(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userName := GetUserName(r)
-		if userName != "" {
-			next.ServeHTTP(w, r)
+	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		id := GetSessionId(request)
+		if id != "" {
+			next.ServeHTTP(response, request)
 		} else {
 
-			http.Redirect(w, r, config.LoginPath+"?redirect="+r.URL.Path, 302)
+			http.Redirect(response, request, config.LoginPath+"?redirect="+request.URL.Path, 302)
 		}
 
 	})
