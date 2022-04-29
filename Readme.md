@@ -4,11 +4,11 @@
 <img src="https://m-shaeri.ir/blog/wp-content/uploads/2022/04/gologin.png"  height="200" >
 </p>
 
-**Gologin** is an easy to setup login manager for Go web applications. It helps you protect your application resources from unattended/unauthenticated access. Currently it works with SQL databases authentication.
+**Gologin** is an easy to setup professional login manager for Go web applications. It helps you protect your application resources from unattended, unauthenticated or unauthorized access. Currently it works with SQL databases authentication. It is flexible, you can use it with any user/roles table structure in database.
 
 ## How to setup
 
-Get the package with this command :
+Get the package with following command :
 
 ```bash
 go get github.com/birddevelper/gologin
@@ -25,7 +25,7 @@ You can easily setup your customized login process with **configure()** function
 
 - **Session timeout** : Number of seconds before the session expires. Default value is 120 seconds.
 
-- **SQL connection and query to authenticate user** : SQL query to retrieve user by given username and password. The query must return only single arbitary column, it must have a where clause with two placeholder ::username and ::password.
+- **SQL connection and query to authenticate user and fetch roles** : 2 SQL queries to retrieve user and its roles by given username and password. The authentication query must return only single arbitary column, it must have a where clause with two placeholder ::username and ::password. And the query for retrieving user's roles must return only the text column of role name.
 
 - **Wrap desired endpoints to protect** : You should wrap the endpoints you want to protect with ***gologin.LoginRequired*** function in the main function.( see the example)
 
@@ -50,12 +50,20 @@ func public() http.Handler {
 	return http.StripPrefix("/static/", http.FileServer(http.Dir("./static")))
 }
 
-// a page in our application
+// a page in our application, it needs user only be authenticated
 func securedPage() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hi! Welcome to secured page.")
 	})
 }
+
+// another page in our application, it needs user be authenticated and have ADMIN role
+func securedPage2() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hi! Welcome to very secured page.")
+	})
+}
+
 
 func main() {
 	// create connection to database
@@ -71,8 +79,9 @@ func main() {
 		SetLoginPath("/login").                // set login http path
 		// set database connection and sql query
 		AuthenticateBySqlQuery(
-            db,
-            "select username from users where username = ::username and password = ::password")
+			db,
+			"select id from users where username = ::username and password = ::password", // authentication query
+			"select role from user_roles where userid = (select id from users where username = ::username)") // fetch user's roles
 
 	// instantiate http server
 	mux := http.NewServeMux()
@@ -87,6 +96,8 @@ func main() {
 
 	// the pages/endpoints that we need to protect should be wrapped with gologin.LoginRequired
 	mux.Handle("/mySecuredPage", gologin.LoginRequired(securedPage()))
+
+	mux.Handle("/mySecuredPage2", gologin.RolesRequired(securedPage2()),"ADMIN")
 
 	// server configuration
 	addr := ":8080"
@@ -155,5 +166,4 @@ fmt.Printf("Welcome " + username)
 
 ## Todo list
 
-- Implement role managemnet and authorization
 - mongoDB support
