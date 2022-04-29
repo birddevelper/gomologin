@@ -130,18 +130,28 @@ Html template for login page :
 
 ```
 
-You can also have in-memory session store to save your data in any type during user's session. By default the **username** and **authData** session keys will be set after each login, so you can access them all across your application. Note that **authData** is the  data from the column you specified in authentication SQL query.
+You can also store data in in-memory session storage in any type during user's session with **SetSession** function, and retrieve it back by **GetSession** function.
 
 ```Go
 
-// get the session data
-username, err : = gologin.GetSession("username")
+// get the session data, the request parameter is *http.Request
+age, err : = gologin.GetSession("age", request)
 
-fmt.Printf("Welcome " + username.(string))
+// as the GetSession returns type is interface{}, we should specify the exact type of the session entry
+fmt.Printf("Your age is " + age.(int))
 
 ```
 
+**GetDataReturnedByAuthQuery** function returns the data of the column you specified in authentication SQL query. And with **GetCurrentUsername** you can get the current user's username.
 
+```Go
+
+// get the current user's username, the request parameter is *http.Request
+username, err : = gologin.GetCurrentUsername(request)
+
+fmt.Printf("Welcome " + username)
+
+```
 
 ## Todo list
 
