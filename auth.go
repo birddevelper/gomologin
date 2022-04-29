@@ -7,8 +7,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strconv"
-	"time"
 
 	"github.com/gorilla/securecookie"
 )
@@ -28,9 +26,9 @@ var cookieHandler = securecookie.New(
 // }
 
 func generateSessionId(username string) string {
-	now := time.Now()
-	unix := now.Unix()
-	timestamp := strconv.FormatInt(unix, 10)
+	//now := time.Now()
+	//unix := now.Unix()
+	timestamp := currentTimeStamp() //strconv.FormatInt(unix, 10)
 	hash := md5.Sum([]byte(username + timestamp))
 	return hex.EncodeToString(hash[:])
 }
@@ -113,6 +111,26 @@ func clearSession(response http.ResponseWriter, request *http.Request) {
 	http.SetCookie(response, cookie)
 }
 
+func GetCurrentUsername(request *http.Request) string {
+	username, ok := GetSession(username_session_key, request)
+	if ok {
+		return username.(string)
+	} else {
+		log.Println("getCurrentUsername error")
+		return ""
+	}
+}
+
+func GetDataReturnedByAuthQuery(request *http.Request) interface{} {
+	data, ok := GetSession(auth_query_result_session_key, request)
+	if ok {
+		return data
+	} else {
+		log.Println("GetDataReturnedByAuthQuery error")
+		return nil
+	}
+}
+
 func doLogin(response http.ResponseWriter, request *http.Request, db DataBaseInterface) {
 	username := request.FormValue("username")
 	password := request.FormValue("password")
@@ -126,8 +144,8 @@ func doLogin(response http.ResponseWriter, request *http.Request, db DataBaseInt
 
 			sessionId := generateSessionId(username)
 			setSessionId(sessionId, response)
-			setSessionBySessionId(sessionId, "authData", data, request)
-			setSessionBySessionId(sessionId, "username", username, request)
+			setSessionBySessionId(sessionId, auth_query_result_session_key, data, request)
+			setSessionBySessionId(sessionId, username_session_key, username, request)
 			if redirectPath != "" {
 				redirectTarget = redirectPath
 			} else {
