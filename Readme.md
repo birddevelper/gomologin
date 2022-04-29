@@ -27,7 +27,7 @@ You can easily setup your customized login process with **configure()** function
 
 - **SQL connection and query to authenticate user and fetch roles** : 2 SQL queries to retrieve user and its roles by given username and password. The authentication query must return only single arbitary column, it must have a where clause with two placeholder ::username and ::password. And the query for retrieving user's roles must return only the text column of role name.
 
-- **Wrap desired endpoints to protect** : You should wrap the endpoints you want to protect with ***gologin.LoginRequired*** function in the main function.( see the example)
+- **Wrap desired endpoints to protect** : You should wrap the endpoints you want to protect with ***gologin.LoginRequired*** or ***gologin.RolesRequired*** function in the main function.( see the example)
 
 See the example :
 
