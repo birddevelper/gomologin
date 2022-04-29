@@ -70,6 +70,7 @@ func SetSession(key string, value interface{}, request *http.Request) {
 
 func setSessionBySessionId(sessionId string, key string, value interface{}, request *http.Request) {
 	session_store[sessionId][key] = value
+
 }
 
 func GetSession(key string, request *http.Request) (interface{}, bool) {
@@ -121,6 +122,29 @@ func GetCurrentUsername(request *http.Request) string {
 	}
 }
 
+func GetCurrentUserRoles(request *http.Request) []string {
+	roles, ok := GetSession(roles_session_key, request)
+	if ok {
+		return roles.([]string)
+	} else {
+		log.Println("GetCurrentUserRoles error")
+		return []string{}
+	}
+}
+
+func HasRole(role string, request *http.Request) bool {
+	roles, ok := GetSession(roles_session_key, request)
+	if ok {
+		if roles_contains(roles.([]string), role) > -1 {
+			return true
+		}
+		return false
+	} else {
+		log.Println("HasRole error")
+		return false
+	}
+}
+
 func GetDataReturnedByAuthQuery(request *http.Request) interface{} {
 	data, ok := GetSession(auth_query_result_session_key, request)
 	if ok {
@@ -140,12 +164,17 @@ func doLogin(response http.ResponseWriter, request *http.Request, db DataBaseInt
 
 		ok, data := db.AuthenticateUser(username, password)
 		if ok {
-			fmt.Printf("Underlying Value: %v\n", data)
 
 			sessionId := generateSessionId(username)
 			setSessionId(sessionId, response)
 			setSessionBySessionId(sessionId, auth_query_result_session_key, data, request)
 			setSessionBySessionId(sessionId, username_session_key, username, request)
+
+			if config.SqlDataBaseModel.RolesSqlQuery != "" {
+				_, roles := db.RetriveRoles(username)
+				setSessionBySessionId(sessionId, roles_session_key, roles, request)
+			}
+
 			if redirectPath != "" {
 				redirectTarget = redirectPath
 			} else {
@@ -169,7 +198,7 @@ func loginView(response http.ResponseWriter, request *http.Request) {
 		http.Error(response, fmt.Sprintf("login: couldn't parse template: %v", err), http.StatusInternalServerError)
 		return
 	}
-	response.WriteHeader(http.StatusOK)
+
 }
 
 func LoginHandler() http.Handler {
@@ -199,6 +228,29 @@ func LoginRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 		id := GetSessionId(request)
 		if id != "" {
+			next.ServeHTTP(response, request)
+		} else {
+
+			http.Redirect(response, request, config.LoginPath+"?redirect="+request.URL.Path, 302)
+		}
+
+	})
+}
+
+func RolesRequired(next http.Handler, roles ...string) http.Handler {
+	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		id := GetSessionId(request)
+		if id != "" {
+
+			for _, role := range roles {
+
+				if !HasRole(role, request) {
+					response.WriteHeader(http.StatusUnauthorized)
+					fmt.Fprintln(response, "Unauthorized")
+					return
+				}
+			}
+
 			next.ServeHTTP(response, request)
 		} else {
 

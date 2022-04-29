@@ -37,11 +37,14 @@ func (config *Config) SetLoginPath(loginPath string) *Config {
 	return config
 }
 
-func (config *Config) AuthenticateBySqlQuery(db *sql.DB, query string) *Config {
+func (config *Config) AuthenticateBySqlQuery(db *sql.DB, authenticateQuery string, rolesQuery string) *Config {
 
-	query = strings.Replace(query, "::username", "?", 1)
-	query = strings.Replace(query, "::password", "?", 1)
-	config.SqlDataBaseModel = SqlDataBase{db, query}
+	authenticateQuery = strings.Replace(authenticateQuery, "::username", "?", 1)
+	authenticateQuery = strings.Replace(authenticateQuery, "::password", "?", 1)
+
+	rolesQuery = strings.Replace(rolesQuery, "::username", "?", 1)
+
+	config.SqlDataBaseModel = SqlDataBase{db, authenticateQuery, rolesQuery}
 	return config
 }
 
