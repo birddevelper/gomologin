@@ -17,7 +17,7 @@ go get github.com/birddevelper/gologin
 
 ## How to use
 
-You can easily setup your customized login process with **configure()** function. You should specify following paramters to make the Gologin ready to start:
+You can easily setup and customize login process with **configure()** function. You should specify following paramters to make the Gologin ready to start:
 
 - **Login page** : path to html template. Default path is ***./template/login.html***, note that the template must be defined as ****"login"**** with ***{{define "login"}}*** at the begining line
 
@@ -25,9 +25,13 @@ You can easily setup your customized login process with **configure()** function
 
 - **Session timeout** : Number of seconds before the session expires. Default value is 120 seconds.
 
-- **SQL connection and query to authenticate user and fetch roles** : 2 SQL queries to retrieve user and its roles by given username and password. The authentication query must return only single arbitary column, it must have a where clause with two placeholder ::username and ::password. And the query for retrieving user's roles must return only the text column of role name.
+- **SQL connection, and SQL query to authenticate user and fetch roles** : 2 SQL queries to retrieve user and its roles by given username and password. The authentication query must return only single arbitary column, it must have a where clause with two placeholder ::username and ::password. And the query for retrieving user's roles must return only the text column of role name.
 
 - **Wrap desired endpoints to protect** : You should wrap the endpoints you want to protect with ***gologin.LoginRequired*** or ***gologin.RolesRequired*** function in the main function.( see the example)
+
+***gologin.LoginRequired*** requires user to be authenticated for accessing the wrapped endpoint/page.
+
+***gologin.RolesRequired*** requires user to have specified roles in addition to be authenticated.
 
 See the example :
 
@@ -117,7 +121,7 @@ func main() {
 
 ```
 
-It is mandatory to name the login form's username input as "username" and password input as "password". Note that the form must send form data as post to the same url (set no action attribute).
+It is mandatory to set the login form's username input as "username" and password input as "password". Note that the form must send form data as post to the same url (set no action attribute).
 
 Html template for login page :
 
@@ -144,24 +148,28 @@ Html template for login page :
 You can also store data in in-memory session storage in any type during user's session with **SetSession** function, and retrieve it back by **GetSession** function.
 
 ```Go
+func securedPage2() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// get the session data, the request parameter is *http.Request
+		age, err : = gologin.GetSession("age", request)
 
-// get the session data, the request parameter is *http.Request
-age, err : = gologin.GetSession("age", request)
-
-// as the GetSession returns type is interface{}, we should specify the exact type of the session entry
-fmt.Printf("Your age is " + age.(int))
-
+		// as the GetSession returns type is interface{}, we should specify the exact type of the session entry
+		fmt.Printf("Your age is " + age.(int))
+	})
+}
 ```
 
 **GetDataReturnedByAuthQuery** function returns the data of the column you specified in authentication SQL query. And with **GetCurrentUsername** you can get the current user's username.
 
 ```Go
+func securedPage2() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// get the current user's username, the request parameter is *http.Request
+			username : = gologin.GetCurrentUsername(request)
 
-// get the current user's username, the request parameter is *http.Request
-username, err : = gologin.GetCurrentUsername(request)
-
-fmt.Printf("Welcome " + username)
-
+			fmt.Printf("Welcome " + username)
+	})
+}
 ```
 
 ## Todo list
