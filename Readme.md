@@ -1,23 +1,23 @@
-# What is Gologin
+# What is Gomologin
 
 <p align="center">
 <img src="https://m-shaeri.ir/blog/wp-content/uploads/2022/04/gologin.png"  height="200" >
 </p>
 
-**Gologin** is an easy to setup professional login manager for Go web applications. It helps you protect your application resources from unattended, unauthenticated or unauthorized access. Currently it works with SQL databases authentication. It is flexible, you can use it with any user/roles table structure in database.
+**Gomologin** is an easy to setup professional login manager for Go web applications. It helps you protect your application resources from unattended, unauthenticated or unauthorized access. Currently it works with SQL databases authentication. It is flexible, you can use it with any user/roles table structure in database.
 
 ## How to setup
 
 Get the package with following command :
 
 ```bash
-go get github.com/birddevelper/gologin
+go get github.com/birddevelper/gomologin
 
 ```
 
 ## How to use
 
-You can easily setup and customize login process with **configure()** function. You should specify following paramters to make the Gologin ready to start:
+You can easily setup and customize login process with **configure()** function. You should specify following paramters to make the Gomologin ready to start:
 
 - **Login page** : path to html template. Default path is ***./template/login.html***, note that the template must be defined as ****"login"**** with ***{{define "login"}}*** at the begining line
 
@@ -27,11 +27,11 @@ You can easily setup and customize login process with **configure()** function. 
 
 - **SQL connection, and SQL query to authenticate user and fetch roles** : 2 SQL queries to retrieve user and its roles by given username and password. The authentication query must return only single arbitary column, it must have a where clause with two placeholder ::username and ::password. And the query for retrieving user's roles must return only the text column of role name.
 
-- **Wrap desired endpoints to protect** : You should wrap the endpoints you want to protect with ***gologin.LoginRequired*** or ***gologin.RolesRequired*** function in the main function.( see the example)
+- **Wrap desired endpoints to protect** : You should wrap the endpoints you want to protect with ***gomologin.LoginRequired*** or ***gomologin.RolesRequired*** function in the main function.( see the example)
 
-***gologin.LoginRequired*** requires user to be authenticated for accessing the wrapped endpoint/page.
+***gomologin.LoginRequired*** requires user to be authenticated for accessing the wrapped endpoint/page.
 
-***gologin.RolesRequired*** requires user to have specified roles in addition to be authenticated.
+***gomologin.RolesRequired*** requires user to have specified roles in addition to be authenticated.
 
 See the example :
 
@@ -45,7 +45,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/birddevelper/gologin"
+	"github.com/birddevelper/gomologin"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -76,8 +76,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Gologin configuration
-	gologin.Configure().
+	// Gomologin configuration
+	gomologin.Configure().
 		SetLoginPage("./template/login.html"). // set login page html template path
 		SetSessionTimeout(90).                 // set session expiration time in seconds
 		SetLoginPath("/login").                // set login http path
@@ -92,16 +92,16 @@ func main() {
 
 	mux.Handle("/static/", public())
 
-	// use Gologin login handler for /login endpoint
-	mux.Handle("/login", gologin.LoginHandler())
+	// use Gomologin login handler for /login endpoint
+	mux.Handle("/login", gomologin.LoginHandler())
 
-	// use Gologin logout handler for /logout endpoint
-	mux.Handle("/logout", gologin.LogoutHandler())
+	// use Gomologin logout handler for /logout endpoint
+	mux.Handle("/logout", gomologin.LogoutHandler())
 
-	// the pages/endpoints that we need to protect should be wrapped with gologin.LoginRequired
-	mux.Handle("/mySecuredPage", gologin.LoginRequired(securedPage()))
+	// the pages/endpoints that we need to protect should be wrapped with gomologin.LoginRequired
+	mux.Handle("/mySecuredPage", gomologin.LoginRequired(securedPage()))
 
-	mux.Handle("/mySecuredPage2", gologin.RolesRequired(securedPage2()),"ADMIN")
+	mux.Handle("/mySecuredPage2", gomologin.RolesRequired(securedPage2()),"ADMIN")
 
 	// server configuration
 	addr := ":8080"
@@ -151,7 +151,7 @@ You can also store data in in-memory session storage in any type during user's s
 func securedPage2() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// get the session data, the request parameter is *http.Request
-		age, err : = gologin.GetSession("age", request)
+		age, err : = gomologin.GetSession("age", request)
 
 		// as the GetSession returns type is interface{}, we should specify the exact type of the session entry
 		fmt.Printf("Your age is " + age.(int))
@@ -165,7 +165,7 @@ func securedPage2() http.Handler {
 func securedPage2() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// get the current user's username, the request parameter is *http.Request
-			username : = gologin.GetCurrentUsername(request)
+			username : = gomologin.GetCurrentUsername(request)
 
 			fmt.Printf("Welcome " + username)
 	})
