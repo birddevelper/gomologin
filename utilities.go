@@ -1,4 +1,4 @@
-package gologin
+package gomologin
 
 import (
 	"strconv"
@@ -13,7 +13,7 @@ func currentTimeStamp() string {
 	return timestamp
 }
 
-func roles_contains(s []string, e string) int {
+func rolesContains(s []string, e string) int {
 	i := 0
 	for _, a := range s {
 		if a == e {
@@ -22,4 +22,14 @@ func roles_contains(s []string, e string) int {
 		i++
 	}
 	return -1
+}
+
+func EncNoEncrypt(password string) string {
+
+	return password
+}
+
+func EncMD5(password string) string {
+
+	return password
 }
