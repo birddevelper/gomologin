@@ -173,6 +173,9 @@ func securedPage2() http.Handler {
 
 To logout users direct them to your **login url + ?logout=yes** for example if your login url is **/login** your application logout url will be **/login?logout=yes**
 
+You can read detailed tutorial with code example at [m-shaeri.ir](https://m-shaeri.ir/blog/golang-login-manager-with-gomologin-package/)
+
+
 ## Todo list
 
 - mongoDB support
