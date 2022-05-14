@@ -1,6 +1,8 @@
 package gomologin
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"strconv"
 	"time"
 )
@@ -31,5 +33,6 @@ func EncNoEncrypt(password string) string {
 
 func EncMD5(password string) string {
 
-	return password
+	hash := md5.Sum([]byte(password))
+	return hex.EncodeToString(hash[:])
 }
