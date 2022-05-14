@@ -25,6 +25,8 @@ You can easily setup and customize login process with **configure()** function. 
 
 - **Session timeout** : Number of seconds before the session expires. Default value is 120 seconds.
 
+- **Password encryption** : Password encryption function to apply on password before it compare with password stored in db. Default is ***EncNoEncrypt***
+
 - **SQL connection, and SQL query to authenticate user and fetch roles** : 2 SQL queries to retrieve user and its roles by given username and password. The authentication query must return only single arbitary column, it must have a where clause with two placeholder ::username and ::password. And the query for retrieving user's roles must return only the text column of role name.
 
 - **Wrap desired endpoints to protect** : You should wrap the endpoints you want to protect with ***gomologin.LoginRequired*** or ***gomologin.RolesRequired*** function in the main function.( see the example)
