@@ -1,4 +1,4 @@
-package gologin
+package gomologin
 
 import (
 	"database/sql"
@@ -10,7 +10,9 @@ type Config struct {
 	SessionTimeout   int
 	LoginPath        string
 	SqlDataBaseModel SqlDataBase
+	EncryptFunction  EncryptFunction
 }
+type EncryptFunction func(string) string
 
 var config Config
 
@@ -19,6 +21,7 @@ func Configure() *Config {
 	config.LoginPage = "./templates/login.html"
 	config.SessionTimeout = 120
 	config.LoginPath = "/login"
+	config.EncryptFunction = EncNoEncrypt
 	return &config
 }
 
@@ -34,6 +37,12 @@ func (config *Config) SetSessionTimeout(sessionTimeout int) *Config {
 
 func (config *Config) SetLoginPath(loginPath string) *Config {
 	config.LoginPath = loginPath
+	return config
+}
+
+func (config *Config) SetPasswordEncryption(EncryptFunc EncryptFunction) *Config {
+
+	config.EncryptFunction = EncryptFunc
 	return config
 }
 
