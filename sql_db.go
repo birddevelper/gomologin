@@ -1,4 +1,4 @@
-package gologin
+package gomologin
 
 import (
 	"database/sql"
