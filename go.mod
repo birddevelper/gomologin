@@ -1,4 +1,4 @@
-module github.com/birddevelper/gologin
+module github.com/birddevelper/gomologin
 
 go 1.16
 
