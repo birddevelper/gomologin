@@ -95,9 +95,6 @@ func main() {
 	// use Gomologin login handler for /login endpoint
 	mux.Handle("/login", gomologin.LoginHandler())
 
-	// use Gomologin logout handler for /logout endpoint
-	mux.Handle("/logout", gomologin.LogoutHandler())
-
 	// the pages/endpoints that we need to protect should be wrapped with gomologin.LoginRequired
 	mux.Handle("/mySecuredPage", gomologin.LoginRequired(securedPage()))
 
@@ -171,6 +168,8 @@ func securedPage2() http.Handler {
 	})
 }
 ```
+
+To logout users direct them to your **login url + ?logout=yes** for example if your login url is **/login** your application logout url will be **/login?logout=yes**
 
 ## Todo list
 

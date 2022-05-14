@@ -205,6 +205,10 @@ func LoginHandler() http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 
 		if request.Method == "GET" {
+			logout := request.URL.Query().Get("logout")
+			if logout != "" {
+				clearSession(response, request)
+			}
 			loginView(response, request)
 		} else if request.Method == "POST" {
 			var db DataBaseInterface
@@ -213,14 +217,6 @@ func LoginHandler() http.Handler {
 			}
 			doLogin(response, request, db)
 		}
-	})
-}
-
-// logout handler
-func LogoutHandler() http.Handler {
-	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-		clearSession(response, request)
-		http.Redirect(response, request, config.LoginPath+"?logout=yes", 302)
 	})
 }
 
