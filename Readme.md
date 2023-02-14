@@ -1,7 +1,7 @@
 # What is Gomologin
 
 <p align="center">
-<img src="https://m-shaeri.ir/blog/wp-content/uploads/2022/04/gologin.png"  height="200" >
+<img src="https://mshaeri.com/blog/wp-content/uploads/2022/04/gologin.png"  height="200" >
 </p>
 
 **Gomologin** is an easy to setup professional login manager for Go web applications. It helps you protect your application resources from unattended, unauthenticated or unauthorized access. Currently it works with SQL databases authentication. It is flexible, you can use it with any user/roles table structure in database.
@@ -173,7 +173,7 @@ func securedPage2() http.Handler {
 
 To logout users direct them to your **login url + ?logout=yes** for example if your login url is **/login** your application logout url will be **/login?logout=yes**
 
-You can read detailed tutorial with code example at [m-shaeri.ir](https://m-shaeri.ir/blog/golang-login-manager-with-gomologin-package/)
+You can read detailed tutorial with code example at [gomoloign user guide](https://mshaeri.com/blog/golang-login-manager-with-gomologin-package/)
 
 
 ## Todo list
