@@ -100,7 +100,7 @@ func main() {
 	// the pages/endpoints that we need to protect should be wrapped with gomologin.LoginRequired
 	mux.Handle("/mySecuredPage", gomologin.LoginRequired(securedPage()))
 
-	mux.Handle("/mySecuredPage2", gomologin.RolesRequired(securedPage2()),"ADMIN")
+	mux.Handle("/mySecuredPage2", gomologin.RolesRequired(securedPage2(),"ADMIN"))
 
 	// server configuration
 	addr := ":8080"
