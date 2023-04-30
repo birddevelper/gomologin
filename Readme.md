@@ -17,6 +17,8 @@ go get github.com/birddevelper/gomologin
 
 ## How to use
 
+(You can read detailed tutorial with code example at [gomoloign user guide](https://mshaeri.com/blog/golang-login-manager-with-gomologin-package/))
+
 You can easily setup and customize login process with **configure()** function. You should specify following paramters to make the Gomologin ready to start:
 
 - **Login page** : path to html template. Default path is ***./template/login.html***, note that the template must be defined as ****"login"**** with ***{{define "login"}}*** at the begining line
