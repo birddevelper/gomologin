@@ -15,7 +15,7 @@ go get github.com/birddevelper/gomologin
 
 ```
 
-## How to use
+## How to use in your web application
 
 (You can read detailed tutorial with code example at [gomoloign user guide](https://mshaeri.com/blog/golang-login-manager-with-gomologin-package/))
 
