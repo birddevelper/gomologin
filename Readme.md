@@ -6,7 +6,7 @@
 
 **Gomologin** is an easy to setup professional login manager for Go web applications. It helps you protect your application resources from unattended, unauthenticated or unauthorized access. Currently it works with SQL databases authentication. It is flexible, you can use it with any user/roles table structure in database.
 
-## How to setup
+## How to install 
 
 Get the package with following command :
 
